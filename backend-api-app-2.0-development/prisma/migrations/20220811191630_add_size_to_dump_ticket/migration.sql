@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "DumpTicket" ADD COLUMN     "size" DOUBLE PRECISION,
+ALTER COLUMN "weight" DROP NOT NULL;

@@ -1,0 +1,88 @@
+import { InvoicingQueueStatus } from '../utils/enums/job.status';
+
+interface DiscardedJobInterface {
+  jobId: string;
+  invoicingStatus: string;
+  jobStatusId: number;
+  jobTechReference: string;
+  billingEmail?: string | null;
+  jobNotes?: string | null;
+  crewNotes?: string | null;
+  customerNotes?: string | null;
+  projectInvoicingNotes?: string | null;
+  projectName?: string | null;
+  accountingSoftware?: string | null;
+  invoiceNotes?: string | null;
+  dateOfService?: Date;
+  customerName?: string;
+  jobTypeName?: string;
+  jobSubTypeName?: string;
+  jobTypeId?: number;
+  jobScope?: string;
+  crewFullName?: string;
+  quantity: number;
+  rate?: number | null;
+  isTaxable?: boolean | null;
+  taxRate?: number | null;
+  total?: number;
+  customFields?: any[];
+  isDiscarded: boolean;
+}
+
+export class DiscardedJobDto {
+  jobId: string;
+  invoicingStatus: string;
+  jobStatusId: number;
+  jobTechReference: string;
+  billingEmail?: string | null;
+  jobNotes?: string | null;
+  crewNotes?: string | null;
+  customerNotes?: string | null;
+  projectInvoicingNotes?: string | null;
+  projectName?: string | null;
+  accountingSoftware?: string | null;
+  invoiceNotes?: string | null;
+  dateOfService?: Date;
+  customerName?: string;
+  jobTypeName?: string;
+  jobSubTypeName?: string;
+  jobTypeId?: number;
+  jobScope?: string;
+  crewFullName?: string;
+  quantity: number;
+  rate?: number | null;
+  isTaxable?: boolean | null;
+  taxRate?: number | null;
+  total?: number;
+  customFields?: any[];
+  isDiscarded: boolean;
+
+  constructor(config: DiscardedJobInterface) {
+    this.jobId = config.jobId;
+    this.invoicingStatus = config.invoicingStatus;
+    this.jobStatusId = config.jobStatusId;
+    this.jobTechReference = config.jobTechReference;
+    this.billingEmail = config.billingEmail;
+    this.jobNotes = config.jobNotes;
+    this.projectInvoicingNotes = config.projectInvoicingNotes;
+    this.projectName = config.projectName;
+    this.accountingSoftware = config.accountingSoftware;
+    this.invoiceNotes = config.invoiceNotes;
+    this.crewNotes = config.crewNotes;
+    this.customerNotes = config.customerNotes;
+    this.dateOfService = config.dateOfService;
+    this.customerName = config.customerName;
+    this.jobTypeName = config.jobTypeName;
+    this.jobSubTypeName = config.jobSubTypeName;
+    this.jobTypeId = config.jobTypeId;
+    this.jobScope = config.jobScope;
+    this.crewFullName = config.crewFullName;
+    this.quantity = config.quantity;
+    this.rate = config.rate;
+    this.isTaxable = config.isTaxable;
+    this.taxRate = config.taxRate;
+    this.total = config.total;
+    this.customFields = config.customFields;
+    this.isDiscarded = config.isDiscarded;
+  }
+}

@@ -1,0 +1,67 @@
+[
+  {
+    "_id": "091281e3-e30a-4bc6-ae2a-f880846dabe5",
+    "colName": "Scrap-It",
+    "created": "2022-05-25T18:54:25.896Z",
+    "sortNum": 10000,
+    "folders": [
+      {
+        "_id": "b3dfa8c8-aab5-4db6-9158-6e13b4bd440a",
+        "name": "User",
+        "containerId": "",
+        "created": "2022-06-17T20:03:42.716Z",
+        "sortNum": 10000
+      },
+      {
+        "_id": "4fd60df0-b83f-4722-bc86-5912430eb643",
+        "name": "Auth",
+        "containerId": "",
+        "created": "2022-06-17T20:13:48.548Z",
+        "sortNum": 20000
+      },
+      {
+        "_id": "45964323-17f1-4014-9075-94cdfe0e9315",
+        "name": "Jobs",
+        "containerId": "",
+        "created": "2022-06-17T20:23:09.703Z",
+        "sortNum": 30000
+      },
+      {
+        "_id": "f5bfced6-36f2-4dd8-b154-1fb0256b7586",
+        "name": "Uploads",
+        "containerId": "",
+        "created": "2022-06-17T20:23:22.658Z",
+        "sortNum": 40000
+      },
+      {
+        "_id": "5fd578e3-2999-4f84-b182-4eefc0b75763",
+        "name": "Booking",
+        "containerId": "",
+        "created": "2022-06-29T20:55:23.184Z",
+        "sortNum": 50000
+      },
+      {
+        "_id": "d1b3c714-ee34-48cc-9003-1759bd5183c1",
+        "name": "Email",
+        "containerId": "",
+        "created": "2022-07-05T18:33:36.760Z",
+        "sortNum": 60000
+      },
+      {
+        "_id": "3cd3934d-8c82-48be-9e45-b64d48acfcba",
+        "name": "Registration",
+        "containerId": "",
+        "created": "2022-07-26T01:50:22.106Z",
+        "sortNum": 70000
+      }
+    ],
+    "settings": {
+      "headers": [],
+      "auth": {
+        "type": "bearer",
+        "bearer": "{{access_token}}"
+      },
+      "tests": []
+    }
+  }
+]

@@ -1,0 +1,40 @@
+-- AlterTable
+ALTER TABLE "Contact" ALTER COLUMN "notes" DROP NOT NULL,
+ALTER COLUMN "addressLine2" DROP NOT NULL,
+ALTER COLUMN "addressLine3" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Customer" ALTER COLUMN "bulkComplete" SET DEFAULT false,
+ALTER COLUMN "customerNotes" DROP NOT NULL,
+ALTER COLUMN "customerWONotes" DROP NOT NULL,
+ALTER COLUMN "holdIfOverdue" DROP NOT NULL,
+ALTER COLUMN "holdIfOverdue" SET DEFAULT false,
+ALTER COLUMN "lastInvoiceDate" DROP NOT NULL,
+ALTER COLUMN "onHold" DROP NOT NULL,
+ALTER COLUMN "onHold" SET DEFAULT false,
+ALTER COLUMN "paymentInstruction" DROP NOT NULL,
+ALTER COLUMN "paymentTerm" DROP NOT NULL,
+ALTER COLUMN "printInvoicing" DROP NOT NULL,
+ALTER COLUMN "printInvoicing" SET DEFAULT false,
+ALTER COLUMN "active" SET DEFAULT true,
+ALTER COLUMN "terminateAt" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "DisposalSite" ALTER COLUMN "addressLine2" DROP NOT NULL,
+ALTER COLUMN "addressLine3" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "Job" ALTER COLUMN "tradePartnerNotes" DROP NOT NULL,
+ALTER COLUMN "poNum" DROP NOT NULL,
+ALTER COLUMN "notificationOn" SET DEFAULT true;
+
+-- AlterTable
+ALTER TABLE "Location" ALTER COLUMN "active" DROP NOT NULL,
+ALTER COLUMN "active" SET DEFAULT true,
+ALTER COLUMN "addressLine2" DROP NOT NULL,
+ALTER COLUMN "addressLine3" DROP NOT NULL,
+ALTER COLUMN "notes" DROP NOT NULL,
+ALTER COLUMN "organization" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "TradePartner" ALTER COLUMN "notes" DROP NOT NULL;

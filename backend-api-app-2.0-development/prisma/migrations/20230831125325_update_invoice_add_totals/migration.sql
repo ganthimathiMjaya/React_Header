@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Invoice" ADD COLUMN     "notes" TEXT,
+ADD COLUMN     "taxRate" DOUBLE PRECISION,
+ADD COLUMN     "total" DOUBLE PRECISION;

@@ -1,0 +1,28 @@
+name: Render
+on:
+  pull_request:
+    branches-ignore:
+      - 'development'
+jobs:
+  deploy:
+    name: Wait for Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Service ID
+        run: |
+          if [ ${{ github.base_ref }} = main ]; then
+            echo "SERVICE_ID=srv-clihkgmf27hc73cs5050" >> "$GITHUB_ENV"
+          elif [ ${{ github.base_ref }} = staging ]; then
+            echo "SERVICE_ID=srv-clih05njc5ks73cvgv6g" >> "$GITHUB_ENV"
+          elif [ ${{ github.base_ref }} = QA ]; then
+            echo "SERVICE_ID=srv-ciavoiunqql51cdmemug" >> "$GITHUB_ENV"
+          else
+            echo "SERVICE_ID=" >> "$GITHUB_ENV"
+          fi
+      - name: Wait for Render Deployment
+        uses: bounceapp/render-action@0.2.0
+        with:
+          email: ${{ secrets.RENDER_EMAIL }}
+          password: ${{ secrets.RENDER_PASSWORD }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          service-id: ${{ env.SERVICE_ID }}

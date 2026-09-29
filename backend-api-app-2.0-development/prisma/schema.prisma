@@ -1,0 +1,1150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Organization {
+  id        String    @id @default(dbgenerated("gen_random_uuid()"))
+  name      String
+  isDeleted Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+
+  addresses                  Address[]
+  admins                     Admin[]
+  bookings                   Booking[]
+  contacts                   Contact[]
+  crews                      Crew[]
+  customers                  Customer[]
+  crewUsers                  CrewUser[]
+  customerUsers              CustomerUser[]
+  crewAssignment             CrewAssignment[]
+  dumpTickets                DumpTicket[]
+  dumpsters                  Dumpster[]
+  disposalSites              DisposalSite[]
+  files                      Files[]
+  feedbacks                  Feedback[]
+  hyphenPurchaseOrders       HyphenPurchaseOrder[]
+  invoices                   Invoice[]
+  invoiceDetails             InvoiceDetail[]
+  inspections                Inspection[]
+  insightsJobDetail          InsightsJobDetail[]
+  jobs                       Job[]
+  jobTypes                   JobType[]
+  jobSubTypes                JobSubType[]
+  locations                  Location[]
+  notifications              Notification[]
+  userNotifications          NotificationUser[]
+  nonDumpsterJobs            NonDumpsterJob[]
+  OrganizationSetting        OrganizationSetting[]
+  OrganizationCustomField    OrganizationCustomField[]
+  OrganizationJobCustomField OrganizationJobCustomField[]
+  OrganizationTaxRate        OrganizationTaxRate[]
+  photos                     Photos[]
+  Project                    Project[]
+  userOrganizations          UserOrganization[]
+}
+
+model User {
+  id                 Int                 @id @default(autoincrement())
+  firstName          String
+  lastName           String
+  username           String?
+  active             Boolean
+  auth_id            String              @unique
+  lastLogin          DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime?           @updatedAt
+  roleId             Int
+  role               Role                @relation(fields: [roleId], references: [id])
+  admins             Admin[]             @relation("UserOnAdmin")
+  bookings           Booking[]
+  contact            Contact?            @relation("UserContact")
+  createdCustomers   Customer[]          @relation("CreatedByUserOnCustomer")
+  createdCrews       Crew[]              @relation("CreatedByUserOnCrews")
+  customerUser       CustomerUser?       @relation("UserOnCustomerUser", fields: [customerUserId], references: [id])
+  inspectedBy        Inspection?         @relation("UserOnInspection")
+  createdByUser      Job[]               @relation("JobCreatedByUser")
+  Job                Job[]
+  crewUser           CrewUser?           @relation("UserOnCrewUser", fields: [crewUserId], references: [id])
+  lastUpdatedByUser  Job[]               @relation("JobLastUpdatedByUser")
+  customerUserId     String?
+  crewUserId         String?
+  Files              Files[]
+  Feedback           Feedback[]
+  notificationsUser  NotificationUser[]
+  userOrganizations  UserOrganization[]
+  insightsJobDetails InsightsJobDetail[]
+  userDevices        UserDevice[]
+
+  @@index([auth_id])
+}
+
+model UserDevice {
+  id                    String   @id @default(uuid())
+  userId                Int
+  orgId                 String   @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  pushNotificationToken String
+  createdAt             DateTime @default(now())
+  user                  User     @relation(fields: [userId], references: [id])
+}
+
+model PushNotificationTicket {
+  id                    String   @id
+  status                String
+  error                 String?
+  pushNotificationToken String?
+  createdAt             DateTime @default(now())
+}
+
+model UserOrganization {
+  id                        Int          @id @default(autoincrement())
+  userId                    Int
+  orgId                     String       @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  isPushNotificationAllowed Boolean      @default(false)
+  isDeleted                 Boolean      @default(false)
+  createdAt                 DateTime     @default(now())
+  updatedAt                 DateTime?    @updatedAt
+  tenantOrganization        Organization @relation(fields: [orgId], references: [id])
+  User                      User         @relation(fields: [userId], references: [id])
+
+  @@unique([userId, orgId])
+}
+
+model Job {
+  id                         String                       @id @default(uuid())
+  orgId                      String                       @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  bookingId                  String?
+  completedAt                DateTime?
+  techReference              String                       @default("")
+  customerId                 String                       @default("")
+  invoiceNotes               String?
+  priority                   Int?
+  //TODO: remove this reference since project is already associated with location.
+  locationId                 String                       @default("")
+  projectId                  String?
+  dumpsterId                 Int?
+  dumpsterDropOffId          Int?
+  timeSlot                   String                       @default("All Day")
+  jobScope                   String                       @default("")
+  windowStart                DateTime?
+  windowEnd                  DateTime?
+  jobDuration                String?
+  maxDuration                Int?
+  tonnage                    Float?
+  maxTonnage                 Float?
+  cost                       Float?
+  loads                      Int?
+  disposalSiteId             Int?
+  appNotes                   String?
+  crewId                     String?
+  jobTypeId                  Int?
+  crewNotes                  String?
+  scheduledDate              DateTime                     @db.Date
+  poNum                      String?
+  wasteType                  String?
+  denoteEpo                  Boolean?
+  green                      Boolean?
+  wrecking                   Boolean?
+  paid                       Boolean                      @default(false)
+  invoiceReady               Boolean                      @default(false)
+  taxable                    Boolean                      @default(true)
+  paidDate                   DateTime?
+  isDiscarded                Boolean                      @default(false)
+  createdAt                  DateTime                     @default(now())
+  updatedAt                  DateTime?                    @updatedAt
+  lastUpdatedBy              User?                        @relation("JobLastUpdatedByUser", fields: [lastUpdatedById], references: [id])
+  lastUpdatedById            Int?                         @default(0)
+  primaryContactId           String?
+  secondaryContactId         String?
+  recurringJobEnd            DateTime?
+  recurringJobStart          DateTime?
+  clientPay                  String?
+  crewPay                    String?
+  jobScopeMod                Boolean?
+  statusId                   Int
+  userId                     Int?
+  areasToService             String?
+  totalSqFt                  String?
+  windowCount                String?
+  addProtection              Boolean?
+  rentalFees                 Float?
+  booking                    Booking?                     @relation(fields: [bookingId], references: [id])
+  createdBy                  User?                        @relation("JobCreatedByUser", fields: [createdById], references: [id])
+  createdById                Int?                         @default(0)
+  customer                   Customer                     @relation(fields: [customerId], references: [id])
+  disposalSite               DisposalSite?                @relation(fields: [disposalSiteId], references: [id])
+  jobType                    JobType?                     @relation(fields: [jobTypeId], references: [id])
+  location                   Location                     @relation(fields: [locationId], references: [id])
+  project                    Project?                     @relation(fields: [projectId], references: [id])
+  primaryContact             Contact?                     @relation("JobPrimaryContact", fields: [primaryContactId], references: [id])
+  secondaryContact           Contact?                     @relation("JobSecondaryContact", fields: [secondaryContactId], references: [id])
+  status                     Status                       @relation("JobStatus", fields: [statusId], references: [id])
+  crew                       Crew?                        @relation(fields: [crewId], references: [id])
+  User                       User?                        @relation(fields: [userId], references: [id])
+  inspection                 Inspection?                  @relation("JobOnInspection")
+  photos                     Photos[]                     @relation("JobOnPhotos")
+  dumpTicket                 DumpTicket[]                 @relation("DumpTicketOnJob")
+  internalNotes              String?
+  jobSubType                 JobSubType?                  @relation(fields: [jobSubTypeId], references: [id])
+  jobSubTypeId               Int?
+  tpNotifiedAt               DateTime?
+  cmNotifiedAt               DateTime?
+  feedbackId                 Int?
+  Feedback                   Feedback?                    @relation(fields: [feedbackId], references: [id])
+  Invoice                    Invoice?                     @relation(fields: [invoiceId], references: [id])
+  invoiceId                  String?
+  invoiceContactEmailAddress String?
+  dumpsterDropoffSize        String?
+  dumpsterPickupSize         String?                      @default("30 Yds")
+  dumpsterDropoffId          String?
+  dumpsterPickupId           String?                      @default("999")
+  dumpsterPickupIdVerified   Boolean                      @default(false)
+  etaStatus                  EtaStatus?                   @relation(fields: [etaStatusId], references: [id])
+  etaStatusId                Int?
+  arrivedTextSent            Boolean?
+  nonDumpster                NonDumpsterJob?              @relation(fields: [nonDumpsterId], references: [id])
+  nonDumpsterId              Int?
+  notes                      String?
+  tenantOrganization         Organization?                @relation(fields: [orgId], references: [id])
+  OrganizationJobCustomField OrganizationJobCustomField[]
+  invoiceDetails             InvoiceDetail[]
+  Notification               Notification[]
+}
+
+//TODO: Remove table since it may be scrap-it specific.
+model NonDumpsterJob {
+  id                     Int           @id @default(autoincrement())
+  orgId                  String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  crewNumber             String?
+  totalHours             String?
+  totalLoads             String?
+  protectionMaterialCost String?
+  dumpsterOnSite         Boolean?
+  jobId                  String?
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime?     @updatedAt
+  Job                    Job[]
+  tenantOrganization     Organization? @relation(fields: [orgId], references: [id])
+}
+
+model DumpTicket {
+  id                         Int           @id @default(autoincrement())
+  orgId                      String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  weight                     Float?
+  size                       Float?
+  disposalSiteNotPresentName String?
+  disposalSite               DisposalSite? @relation(fields: [disposalSiteId], references: [id])
+  dumpsterId                 String?
+  disposalSiteId             Int?
+  job                        Job?          @relation("DumpTicketOnJob", fields: [jobId], references: [id])
+  jobId                      String
+  wasteType                  WasteType?    @relation(fields: [wasteTypeId], references: [id])
+  wasteTypeId                Int?
+  createdAt                  DateTime      @default(now())
+  updatedAt                  DateTime?     @updatedAt
+  tenantOrganization         Organization? @relation(fields: [orgId], references: [id])
+}
+
+model DumpsterSize {
+  id        Int       @id @default(autoincrement())
+  content   String
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
+}
+
+model WasteType {
+  id          Int          @id @default(autoincrement())
+  description String
+  DumpTicket  DumpTicket[]
+}
+
+model JobType {
+  id                 Int              @id @default(autoincrement())
+  shortDescription   String
+  orgId              String           @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  isDeleted          Boolean          @default(false)
+  jobs               Job[]
+  possibleSubTypes   JobSubType[]
+  CrewAssignment     CrewAssignment[]
+  tenantOrganization Organization?    @relation(fields: [orgId], references: [id])
+  InvoiceDetail      InvoiceDetail[]
+}
+
+model JobSubType {
+  id                 Int                  @id @default(autoincrement())
+  name               String
+  orgId              String               @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  description        String?
+  cost               Float?
+  isTaxable          Boolean?
+  isOnBookingPortal  Boolean              @default(true)
+  taxRateId          Int?
+  qbSyncToken        String?
+  scrappySyncToken   String?
+  qbIncomeAccountRef String?
+  qbId               String?
+  isDeleted          Boolean              @default(false)
+  taxRate            OrganizationTaxRate? @relation(fields: [taxRateId], references: [id])
+  jobs               Job[]
+  jobType            JobType?             @relation(fields: [jobTypeId], references: [id])
+  jobTypeId          Int?
+  tenantOrganization Organization?        @relation(fields: [orgId], references: [id])
+  InvoiceDetail      InvoiceDetail[]
+}
+
+model Contact {
+  id                  String        @id @default(uuid())
+  orgId               String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  active              Boolean?      @default(true)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime?     @updatedAt
+  addressId           String?
+  firstName           String
+  lastName            String
+  ownerId             Int?          @unique
+  customerId          String?
+  contactTypeId       Int?          @default(1)
+  address             Address?      @relation("ContactAddress", fields: [addressId], references: [id])
+  contactType         Type?         @relation("ContactType", fields: [contactTypeId], references: [id])
+  owner               User?         @relation("UserContact", fields: [ownerId], references: [id])
+  email               Email?        @relation("ContactEmail")
+  customer            Customer?     @relation(fields: [customerId], references: [id])
+  jobPrimaryContact   Job[]         @relation("JobPrimaryContact")
+  jobSecondaryContact Job[]         @relation("JobSecondaryContact")
+  phone               Phone?        @relation("ContactPhone")
+  DisposalSite        DisposalSite? @relation(fields: [disposalSiteId], references: [id])
+  disposalSiteId      Int?
+  tenantOrganization  Organization? @relation(fields: [orgId], references: [id])
+  primaryProjects     Project[]     @relation("PrimaryContact")
+  secondaryProjects   Project[]     @relation("SecondaryContact")
+}
+
+model Email {
+  id        String    @id @default(uuid())
+  contactId String    @unique
+  address   String
+  isFake    Boolean   @default(false)
+  typeId    Int?
+  default   Boolean   @default(false)
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
+  contact   Contact?  @relation("ContactEmail", fields: [contactId], references: [id])
+  Type      Type?     @relation(fields: [typeId], references: [id])
+}
+
+model Phone {
+  id        String    @id @default(uuid())
+  contactId String    @unique
+  number    String
+  typeId    Int?
+  default   Boolean?
+  updatedAt DateTime? @updatedAt
+  createdAt DateTime  @default(now())
+  contact   Contact?  @relation("ContactPhone", fields: [contactId], references: [id])
+  type      Type?     @relation("PhoneType", fields: [typeId], references: [id])
+}
+
+model Crew {
+  id                    String           @id @default(uuid())
+  orgId                 String           @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  name                  String
+  notes                 String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime?        @updatedAt
+  active                Boolean          @default(false)
+  capacity              Int              @default(0)
+  createdById           Int
+  resources             String?
+  createdBy             User             @relation("CreatedByUserOnCrews", fields: [createdById], references: [id])
+  healthAndSafetyExpiry DateTime?
+  locationId            String?
+  typeId                Int              @default(1)
+  email                 String?
+  phone                 String?
+  location              Location?        @relation("LocationOfCrew", fields: [locationId], references: [id])
+  type                  Type             @relation("TypeOfCrew", fields: [typeId], references: [id])
+  jobs                  Job[]
+  CrewUser              CrewUser[]       @relation("CrewOnCrewUser")
+  CrewAssignment        CrewAssignment[]
+  tenantOrganization    Organization?    @relation(fields: [orgId], references: [id])
+}
+
+model Customer {
+  id                   String           @id @default(uuid())
+  orgId                String           @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  bulkComplete         Boolean          @default(false)
+  createdById          Int
+  createdBy            User             @relation("CreatedByUserOnCustomer", fields: [createdById], references: [id])
+  lastInvoiceDate      DateTime?
+  customerBillingNotes String?
+  active               Boolean          @default(true)
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime?        @updatedAt
+  locationId           String?
+  name                 String
+  notes                String?
+  terminatedAt         DateTime?
+  workOrderNotes       String?
+  resources            String?
+  email                String?
+  phone                String?
+  rentalFees           Float?
+  terms                Int?
+  billingAddressLine1  String
+  billingAddressLine2  String?
+  billingCity          String
+  billingState         String
+  billingZipcode       String
+  billingPhone         String
+  billingEmail         String
+  qbSyncToken          String?
+  scrappySyncToken     String?
+  qbId                 String?
+  sameAsCompanyAddress Boolean          @default(false)
+  booking              Booking[]        @relation("CustomerOfBooking")
+  customerUser         CustomerUser[]   @relation("CustomerOnCustomerUser")
+  location             Location?        @relation("LocationOfCustomer", fields: [locationId], references: [id])
+  jobs                 Job[]
+  CrewAssignment       CrewAssignment[]
+  tenantOrganization   Organization?    @relation(fields: [orgId], references: [id])
+  projects             Project[]
+  invoices             Invoice[]
+  Contact              Contact[]
+}
+
+model Booking {
+  id                  String        @id @default(uuid())
+  orgId               String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  bookingSource       BookingSource
+  customerId          String
+  internalNotes       String?
+  locationId          String?
+  projectId           String?
+  scheduledDate       DateTime      @db.Date
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime?     @updatedAt
+  bookedById          Int?
+  statusId            Int
+  timeSlot            String?
+  recurrenceFrequency String?
+  recurrenceEndDate   DateTime?
+  bookedBy            User?         @relation(fields: [bookedById], references: [id])
+  customer            Customer      @relation("CustomerOfBooking", fields: [customerId], references: [id])
+  project             Project?      @relation(fields: [projectId], references: [id])
+  location            Location?     @relation(fields: [locationId], references: [id])
+  status              Status        @relation("StatusOfBooking", fields: [statusId], references: [id])
+  jobs                Job[]
+  photos              Photos[]
+  tenantOrganization  Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Address {
+  id                 String        @id @default(uuid())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  line1              String
+  line2              String?
+  line3              String?
+  city               String
+  county             String?
+  state              String
+  zipcode            String
+  active             Boolean
+  updatedAt          DateTime?     @updatedAt
+  createdAt          DateTime      @default(now())
+  contactAddress     Contact[]     @relation("ContactAddress")
+  locationAddress    Location[]    @relation("LocationAddress")
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Location {
+  id                 String         @id @default(uuid())
+  orgId              String         @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  active             Boolean?       @default(true)
+  community          String?
+  name               String
+  notes              String?
+  organization       String?
+  latitude           Float?
+  longitude          Float?
+  multiFamily        Boolean?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime?      @updatedAt
+  addressId          String
+  address            Address        @relation("LocationAddress", fields: [addressId], references: [id])
+  bookings           Booking[]
+  disposalSite       DisposalSite[] @relation("LocationOfDisposalSite")
+  jobs               Job[]
+  crew               Crew[]         @relation("LocationOfCrew")
+  Customer           Customer[]     @relation("LocationOfCustomer")
+  Files              Files[]
+  tenantOrganization Organization?  @relation(fields: [orgId], references: [id])
+  Project            Project[]
+}
+
+model Dumpster {
+  id                 Int           @id @default(autoincrement())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime?     @updatedAt
+  number             String?       @unique
+  sizeId             Int?
+  statusId           Int?
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model DisposalSite {
+  id                 Int           @id @default(autoincrement())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime?     @updatedAt
+  greenFlag          Boolean
+  contact            Contact[]
+  locationId         String
+  location           Location      @relation("LocationOfDisposalSite", fields: [locationId], references: [id])
+  Job                Job[]
+  DumpTicket         DumpTicket[]
+  contactId          String[]
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Photos {
+  id                 Int           @id @default(autoincrement())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  jobId              String?
+  type               PhotoType
+  source             PhotoSource
+  url                String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime?     @updatedAt
+  job                Job?          @relation("JobOnPhotos", fields: [jobId], references: [id])
+  booking            Booking?      @relation(fields: [bookingId], references: [id])
+  bookingId          String?
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Files {
+  id                 Int           @id @default(autoincrement())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  locationId         String
+  type               FileType?
+  description        String
+  url                String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime?     @updatedAt
+  Location           Location?     @relation(fields: [locationId], references: [id])
+  User               User?         @relation(fields: [userId], references: [id])
+  userId             Int?
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Inspection {
+  id                 Int           @id @default(autoincrement())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  jobId              String        @unique
+  inspectedAt        DateTime?     @default(now())
+  inspectedById      Int           @unique
+  inspectedBy        User          @relation("UserOnInspection", fields: [inspectedById], references: [id])
+  job                Job           @relation("JobOnInspection", fields: [jobId], references: [id])
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Feedback {
+  id                 Int           @id @default(autoincrement())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  createdAt          DateTime      @default(now())
+  createdBy          User          @relation(fields: [userId], references: [id])
+  text               String
+  rating             Int
+  jobId              String?
+  userId             Int
+  Job                Job[]
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  description String
+  updatedAt   DateTime? @updatedAt
+  createdAt   DateTime  @default(now())
+  User        User[]
+}
+
+model Admin {
+  id                 String        @id @default(uuid())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  userId             Int
+  admin_level        Int?
+  updatedAt          DateTime?     @updatedAt
+  createdAt          DateTime      @default(now())
+  User               User          @relation("UserOnAdmin", fields: [userId], references: [id])
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model CrewUser {
+  id                 String        @id @default(uuid())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  userId             Int           @unique
+  updatedAt          DateTime?     @updatedAt
+  createdAt          DateTime      @default(now())
+  crewId             String
+  Crew               Crew          @relation("CrewOnCrewUser", fields: [crewId], references: [id])
+  User               User[]        @relation("UserOnCrewUser")
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model CustomerUser {
+  id                 String        @id @default(uuid())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  userId             Int
+  updatedAt          DateTime?     @updatedAt
+  createdAt          DateTime      @default(now())
+  customerId         String
+  Customer           Customer      @relation("CustomerOnCustomerUser", fields: [customerId], references: [id])
+  User               User[]        @relation("UserOnCustomerUser")
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Type {
+  id          Int       @id @default(autoincrement())
+  content     String
+  shortDesc   String
+  updatedAt   DateTime? @updatedAt
+  createdAt   DateTime  @default(now())
+  contactType Contact[] @relation("ContactType")
+  phonetype   Phone[]   @relation("PhoneType")
+  crewType    Crew[]    @relation("TypeOfCrew")
+  Email       Email[]
+}
+
+model Status {
+  id            Int       @id @default(autoincrement())
+  content       String
+  updatedAt     DateTime? @updatedAt
+  createdAt     DateTime  @default(now())
+  bookingStatus Booking[] @relation("StatusOfBooking")
+  jobStatus     Job[]     @relation("JobStatus")
+}
+
+model Invoice {
+  id               String    @id @default(uuid())
+  orgId            String    @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  statusId         Int?
+  customerId       String?
+  projectId        String?
+  invoiceNo        String?
+  terms            Int?
+  processed        Boolean   @default(false)
+  total            Float?
+  taxRate          Float?
+  notes            String?
+  invoiceDate      DateTime? @db.Timestamptz(3)
+  dueDate          DateTime? @db.Timestamptz(3)
+  messageOnInvoice String?
+  isDeleted        Boolean   @default(false)
+
+  //Quickbooks fields
+  syncToQb         Boolean?
+  qbId             String?
+  qbSyncToken      String?
+  scrappySyncToken String?
+  qbLastSynced     DateTime? @db.Timestamptz(3)
+  qbSyncFailed     Boolean?
+
+  //Project snapshot.
+  projectName               String?
+  projectBillingNotes       String?
+  projectAccountingSoftware String?
+  projectCommunityName      String?
+  projectLine1              String?
+  projectLine2              String?
+  projectLine3              String?
+  projectCity               String?
+  projectState              String?
+  projectZipcode            String?
+
+  //Billing address information (pulled from customer address info)
+  billingEmail         String?
+  billingPhone         String?
+  billingName          String?
+  billingNotes         String?
+  billingCommunityName String?
+  billingLine1         String?
+  billingLine2         String?
+  billingCity          String?
+  billingState         String?
+  billingZipcode       String?
+
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime? @updatedAt @db.Timestamptz(3)
+
+  customer           Customer?       @relation(fields: [customerId], references: [id])
+  status             InvoiceStatus?  @relation(fields: [statusId], references: [id])
+  invoiceDetail      InvoiceDetail[]
+  tenantOrganization Organization    @relation(fields: [orgId], references: [id])
+  job                Job[]
+}
+
+model InvoiceDetail {
+  id            String    @id @default(uuid())
+  orgId         String    @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  qbRef         String    @default("")
+  qbClass       String    @default("")
+  invoiceId     String
+  invoiceLineNo Int?
+  lineItemType  String    @default("JOB")
+  jobId         String?
+  jobTypeId     Int?
+  jobSubTypeId  Int?
+  serviceDate   DateTime? @db.Timestamptz(3)
+  description   String?
+  quantity      Int       @default(1)
+  cost          Float?
+  amount        Float?
+  isTaxable     Boolean?  @default(true)
+  taxRate       Float?
+  crewFirstName String?
+  crewLastName  String?
+  crewNotes     String?
+  invoiceNotes  String?
+  customerNotes String?
+  jobNotes      String?
+  scope         String?
+  isDeleted     Boolean?  @default(false)
+
+  invoice            Invoice      @relation(fields: [invoiceId], references: [id])
+  job                Job?         @relation(fields: [jobId], references: [id])
+  jobType            JobType?     @relation(fields: [jobTypeId], references: [id])
+  jobSubType         JobSubType?  @relation(fields: [jobSubTypeId], references: [id])
+  tenantOrganization Organization @relation(fields: [orgId], references: [id])
+
+  customFields InvoiceDetailCustomField[]
+}
+
+model InvoiceDetailCustomField {
+  id              String @id @default(uuid())
+  invoiceDetailId String
+
+  organizationCustomFieldCategoryId   Int?
+  organizationCustomFieldCategoryCode String
+  organizationCustomFieldCategoryDesc String
+  organizationCustomFieldId           Int?
+  organizationCustomFieldName         String
+  organizationJobCustomFieldId        Int?
+  customFieldValue                    String
+
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime? @updatedAt @db.Timestamptz(3)
+  isDeleted Boolean   @default(false)
+
+  invoiceDetail InvoiceDetail @relation(fields: [invoiceDetailId], references: [id])
+}
+
+model InvoiceStatus {
+  id        Int       @id @default(autoincrement())
+  code      String
+  desc      String
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime? @updatedAt @db.Timestamptz(3)
+  isDeleted Boolean   @default(false)
+  invoice   Invoice[]
+}
+
+model HyphenPurchaseOrder {
+  id    String @id @unique //@default(uuid())
+  orgId String @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  // builderOrderNumber         String?
+  // supplierOrderNumber        String?
+  // issueDate                  String?
+  // accountNumber              String?
+  // accountCode                String?
+  // accountCode2               String?
+  // accountCode3               String?
+  // purpose                    String?
+  // orderType                  String?
+  // orderCurrency              String?
+  // orderHeaderNote            String?
+  // additionalReferenceNumber  String?
+  // supplierReferenceNumber    String?
+  // buyerStatus                String?
+  // ticketId                   String?
+  // warrantyRequestedStartTime String?
+  // warrantyRequestedEndTime   String?
+  // deliveryType               String?
+  // crewId                     String?
+  // storeMapNumber             String?
+  // startDate                  String?
+  // endDate                    String?
+  // builderId                  String
+  // builder                    HyphenBuilder      @relation(fields: [builderId], references: [id])
+  // supplierId                 String
+  // supplier                   HyphenSupplier     @relation(fields: [supplierId], references: [id])
+  // shippingInfoId             String
+  // shippingInfo               HyphenShippingInfo @relation(fields: [shippingInfoId], references: [id])
+  // billingInfoId              String
+  // billingInfo                HyphenBillingInfo  @relation(fields: [billingInfoId], references: [id])
+  // taskId                     String
+  // task                       HyphenTask         @relation(fields: [taskId], references: [id])
+  // jobId                      String
+  // job                        HyphenJob          @relation(fields: [jobId], references: [jobNum])
+
+  stringifiedOrder   String
+  // changeOrders     HyphenChangeOrder[]
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+// model HyphenChangeOrder {
+//   changeOrderNumber     String              @id @unique
+//   changeOrderSequence   String?
+//   changeOrderIssueDate  String?
+//   purchaseOrderId       String
+//   purchaseOrder         HyphenPurchaseOrder @relation(fields: [purchaseOrderId], references: [id])
+//   changeType            String?
+//   changeOrderHeaderNote String?
+// }
+
+// model HyphenBuilder {
+//   id              String                @unique
+//   addressId       String                @unique
+//   address         HyphenAddress         @relation(fields: [addressId], references: [id])
+//   contactId       String                @unique
+//   primaryContacts HyphenContact         @relation(fields: [contactId], references: [id])
+//   purchaseOrders  HyphenPurchaseOrder[]
+// }
+
+// model HyphenSupplier {
+//   id              String                @unique
+//   addressId       String                @unique
+//   address         HyphenAddress         @relation(fields: [addressId], references: [id])
+//   contactId       String                @unique
+//   primaryContacts HyphenContact         @relation(fields: [contactId], references: [id])
+//   purchaseOrders  HyphenPurchaseOrder[]
+// }
+
+// model HyphenContact {
+//   id                       String               @id @unique @default(uuid())
+//   name                     String
+//   phone                    String
+//   email                    String
+//   eDestinationEmailAddress String?
+//   bidConnectEmailAddress   String?
+//   purchasingEmailAddress   String?
+//   purchasingCcEmailAddress String?
+//   accountingEmailAddress   String?
+//   warrantyEmailAddress     String?
+//   builder                  HyphenBuilder?
+//   supplier                 HyphenSupplier?
+//   shippingInfo             HyphenShippingInfo[]
+//   billingInfo              HyphenBillingInfo[]
+//   job                      HyphenJob[]
+// }
+
+// model HyphenAddress {
+//   id               String               @id @unique @default(uuid())
+//   name             String
+//   street           String
+//   streetSupplement String
+//   city             String
+//   stateCode        String
+//   postalCode       String
+//   builder          HyphenBuilder?
+//   supplier         HyphenSupplier?
+//   shippingInfo     HyphenShippingInfo[]
+//   billingInfo      HyphenBillingInfo[]
+//   job              HyphenJob[]
+// }
+
+// model HyphenShippingInfo {
+//   id              String                @id @unique @default(uuid())
+//   addressId       String
+//   address         HyphenAddress         @relation(fields: [addressId], references: [id])
+//   contactId       String
+//   primacyContacts HyphenContact         @relation(fields: [contactId], references: [id])
+//   purchaseOrders  HyphenPurchaseOrder[]
+// }
+
+// model HyphenBillingInfo {
+//   id              String                @id @unique @default(uuid())
+//   addressId       String
+//   address         HyphenAddress         @relation(fields: [addressId], references: [id])
+//   contactId       String
+//   primacyContacts HyphenContact         @relation(fields: [contactId], references: [id])
+//   purchaseOrders  HyphenPurchaseOrder[]
+// }
+
+// model HyphenTask {
+//   id             String                @id @unique
+//   name           String
+//   description    String?
+//   purchaseOrders HyphenPurchaseOrder[]
+// }
+
+// model HyphenJob {
+//   jobNum              String                @id @unique
+//   name                String
+//   addressId           String
+//   address             HyphenAddress         @relation(fields: [addressId], references: [id])
+//   subdivision         String?
+//   phase               String?
+//   lot                 String?
+//   block               String?
+//   plan                String?
+//   elevation           String?
+//   swing               String?
+//   permitNumber        String?
+//   startDate           String?
+//   endDate             String?
+//   colorPackage        String?
+//   jioId               String?
+//   contactId           String
+//   contact             HyphenContact         @relation(fields: [contactId], references: [id])
+//   communityId         String?
+//   communityCode       String?
+//   communityCode2      String?
+//   communityCode3      String?
+//   HyphenPurchaseOrder HyphenPurchaseOrder[]
+// }
+
+// model HyphenItem {
+//   builderLineItemNum String  @id @unique
+//   builderSupplierSKU String?
+//   builderAltItemId   String?
+//   supplierSKU        String?
+//   itemDescription    String?
+// }
+
+model EtaStatus {
+  id     Int    @id @default(autoincrement())
+  status String
+  Job    Job[]
+}
+
+model CrewAssignment {
+  id                 Int           @id @default(autoincrement())
+  orgId              String        @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  crew               Crew          @relation(fields: [crewId], references: [id])
+  crewId             String
+  customer           Customer      @relation(fields: [customerId], references: [id])
+  customerId         String
+  jobType            JobType       @relation(fields: [jobTypeId], references: [id])
+  jobTypeId          Int
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model Notification {
+  id               String   @id @default(uuid())
+  orgId            String   @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  type             String?
+  jobId            String?
+  jobTechReference String?
+  receiverType     String?
+  triggeredBy      String?
+  title            String?
+  description      String?
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+
+  tenantOrganization Organization?      @relation(fields: [orgId], references: [id])
+  notificationUser   NotificationUser[]
+  job                Job?               @relation(fields: [jobId], references: [id])
+}
+
+model NotificationUser {
+  id             String    @id @default(uuid())
+  notificationId String
+  userId         Int
+  orgId          String    @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  isRead         Boolean   @default(false)
+  isCleared      Boolean   @default(false)
+  createdAt      DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt      DateTime? @updatedAt @db.Timestamptz(3)
+
+  notification       Notification  @relation(fields: [notificationId], references: [id])
+  user               User          @relation(fields: [userId], references: [id])
+  tenantOrganization Organization? @relation(fields: [orgId], references: [id])
+}
+
+model JobLock {
+  id        String    @id
+  type      String
+  status    String
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime? @updatedAt @db.Timestamptz(3)
+}
+
+model InsightsJobStatus {
+  id                Int                 @id @default(autoincrement())
+  code              String
+  desc              String
+  createdAt         DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt         DateTime?           @updatedAt @db.Timestamptz(3)
+  isDeleted         Boolean             @default(false)
+  InsightsJobHeader InsightsJobHeader[]
+  InsightsJobDetail InsightsJobDetail[]
+}
+
+model InsightsJobHeader {
+  id                  Int                 @id @default(autoincrement())
+  insightsJobStatus   InsightsJobStatus   @relation(fields: [insightsJobStatusId], references: [id])
+  insightsJobStatusId Int
+  createdAt           DateTime            @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime?           @updatedAt @db.Timestamptz(3)
+  isDeleted           Boolean             @default(false)
+  InsightsJobDetail   InsightsJobDetail[]
+}
+
+model InsightsJobDetail {
+  id                  Int               @id @default(autoincrement())
+  insightsJobHeader   InsightsJobHeader @relation(fields: [insightsJobHeaderId], references: [id])
+  insightsJobHeaderId Int
+  insightsJobStatus   InsightsJobStatus @relation(fields: [insightsJobStatusId], references: [id])
+  insightsJobStatusId Int
+  user                User              @relation(fields: [adminUserId], references: [id])
+  organization        Organization      @relation(fields: [orgId], references: [id])
+  adminUserId         Int
+  orgId               String
+  failureDate         DateTime?         @db.Timestamptz(3)
+  createdAt           DateTime          @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime?         @updatedAt @db.Timestamptz(3)
+  isDeleted           Boolean           @default(false)
+}
+
+model OrganizationSetting {
+  id                      Int                       @id @default(autoincrement())
+  orgId                   String                    @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  organization            Organization              @relation(fields: [orgId], references: [id])
+  paymentInstructions     String?
+  companyLogoS3Key        String?
+  invoiceMessage          String?
+  companyName             String?
+  phoneNumber             String?
+  address                 String?
+  invoiceEmail            String?
+  createdAt               DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime?                 @updatedAt @db.Timestamptz(3)
+  isDeleted               Boolean                   @default(false)
+  quickbooksEnabled       Boolean                   @default(false)
+  OrganizationCustomField OrganizationCustomField[]
+  organizationTaxRate     OrganizationTaxRate[]
+  timezone                String?
+}
+
+model OrganizationCustomFieldCategory {
+  id                      Int                       @id @default(autoincrement())
+  code                    String
+  desc                    String
+  createdAt               DateTime                  @default(now()) @db.Timestamptz(3)
+  updatedAt               DateTime?                 @updatedAt @db.Timestamptz(3)
+  isDeleted               Boolean                   @default(false)
+  OrganizationCustomField OrganizationCustomField[]
+}
+
+model OrganizationCustomField {
+  id                                Int       @id @default(autoincrement())
+  orgId                             String    @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  organizationSettingId             Int
+  organizationCustomFieldCategoryId Int
+  name                              String
+  createdAt                         DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt                         DateTime? @updatedAt @db.Timestamptz(3)
+  isInvoiceable                     Boolean   @default(false)
+  showCrew                          Boolean   @default(false)
+  showCustomer                      Boolean   @default(false)
+  isActive                          Boolean   @default(false)
+  isDeleted                         Boolean   @default(false)
+
+  organization                    Organization                    @relation(fields: [orgId], references: [id])
+  organizationSetting             OrganizationSetting             @relation(fields: [organizationSettingId], references: [id])
+  organizationCustomFieldCategory OrganizationCustomFieldCategory @relation(fields: [organizationCustomFieldCategoryId], references: [id])
+  OrganizationJobCustomField      OrganizationJobCustomField[]
+}
+
+model OrganizationTaxRate {
+  id                    Int       @id @default(autoincrement())
+  orgId                 String    @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  organizationSettingId Int
+  name                  String
+  taxRatePercent        Float
+  createdAt             DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt             DateTime? @updatedAt @db.Timestamptz(3)
+
+  organization        Organization        @relation(fields: [orgId], references: [id])
+  organizationSetting OrganizationSetting @relation(fields: [organizationSettingId], references: [id])
+  JobSubType          JobSubType[]
+}
+
+model OrganizationJobCustomField {
+  id                        Int                     @id @default(autoincrement())
+  orgId                     String                  @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  organization              Organization            @relation(fields: [orgId], references: [id])
+  organizationCustomFieldId Int
+  organizationCustomField   OrganizationCustomField @relation(fields: [organizationCustomFieldId], references: [id])
+  jobId                     String
+  value                     String
+  createdAt                 DateTime                @default(now()) @db.Timestamptz(3)
+  updatedAt                 DateTime?               @updatedAt @db.Timestamptz(3)
+  isDeleted                 Boolean                 @default(false)
+  job                       Job                     @relation(fields: [jobId], references: [id])
+}
+
+model Project {
+  id                 String  @id @default(uuid())
+  orgId              String  @default(dbgenerated("current_setting('app.current_org_id'::text)"))
+  customerId         String
+  locationId         String
+  name               String
+  billingNotes       String?
+  billingEmail       String?
+  accountingSoftware String?
+  primaryContactId   String?
+  secondaryContactId String?
+  isActive           Boolean @default(false)
+
+  createdAt        DateTime     @default(now()) @db.Timestamptz(3)
+  updatedAt        DateTime?    @updatedAt @db.Timestamptz(3)
+  isDeleted        Boolean      @default(false)
+  customer         Customer     @relation(fields: [customerId], references: [id])
+  location         Location     @relation(fields: [locationId], references: [id])
+  primaryContact   Contact?     @relation("PrimaryContact", fields: [primaryContactId], references: [id])
+  secondaryContact Contact?     @relation("SecondaryContact", fields: [secondaryContactId], references: [id])
+  organization     Organization @relation(fields: [orgId], references: [id])
+  Job              Job[]
+  Booking          Booking[]
+}
+
+model QBIntegrationTokens {
+  id            String    @id @default(uuid())
+  orgId         String    @unique
+  companyId     String
+  refreshToken  String
+  accessToken   String?
+  tokensExpired Boolean   @default(false)
+  createdAt     DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime? @updatedAt @db.Timestamptz(3)
+}
+
+enum PhotoSource {
+  CLIENT
+  CREW
+}
+
+enum FileType {
+  SITE_MAP
+  DOCUMENT
+  OTHER
+}
+
+enum PhotoType {
+  BOOKING
+  BEFORE_JOB
+  AFTER_JOB
+  DUMP_TICKET
+}
+
+enum BookingSource {
+  MOBILE
+  WEB
+}

@@ -1,0 +1,80 @@
+* {
+    padding: 0px;
+    margin: 0px;
+}
+
+@font-face {
+    font-family: 'proxima_nova_regular';
+    src: url('../assets/fonts/proximanova-regular-webfont.woff2') format('woff2'), url('../assets/fonts/proximanova-regular-webfont.woff') format('woff');
+    font-weight: normal;
+    font-style: normal;
+}
+
+body {
+    font-family: 'proxima_nova_regular', arial !important;
+    font-weight: normal;
+    overflow-x: hidden;
+    font-weight: normal;
+    margin: 0px;
+    font-size: 14px;
+    background-color: #ededed !important;
+
+
+}
+
+.customclass {
+    width: 160px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-left: 60px;
+    border-bottom: 1px solid #ccc;
+    padding-right: 20px;
+    padding: 5px;
+}
+
+.apps_image {
+    height: 30px;
+    padding-top: 5px;
+}
+
+.profile_section {
+    display: flex;
+    gap: 10px;
+    color: #000;
+}
+
+.notification {
+    height: 30px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    background: #fff;
+    padding: 2px;
+}
+
+.Custom-sidepanel {
+    width: 80px;
+    /* background: forestgreen; */
+    position: fixed;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    background: #f3f3f3;
+    border-right: 1px solid #ccc;
+}
+
+.Custom-tabsection {
+    width: 30px;
+    margin: auto;
+    display: block;
+    padding-bottom: 5px;
+    padding-top: 10px;
+    cursor: pointer;
+}
+
+
+

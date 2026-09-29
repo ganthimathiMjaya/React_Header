@@ -1,0 +1,24 @@
+.listpanel{
+    display:flex;
+    gap:10px;
+    padding:0;
+}
+.listpanel li{
+   padding-right:10px;
+    list-style:none;
+    border-right:1px solid #ccc;
+}
+.infotimer{
+    width:auto;
+}   
+.listpanel li >h6{
+    margin:0;
+}
+.listpanel li >span{
+    font-size:9px;
+    font-weight: normal;
+}
+.select_Headervalue{
+    font-size: 10px;
+    padding-bottom: 2px;
+}

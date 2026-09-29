@@ -1,0 +1,24 @@
+name: Merge QA Into Staging
+
+on:
+  push:
+    branches:
+      - 'QA'
+
+jobs:
+  main:
+    name: Create PR QA to Staging
+    runs-on: ubuntu-latest
+    steps:
+      - name: git checkout
+        uses: actions/checkout@v3
+
+      # https://github.com/marketplace/actions/github-pull-request-action
+      - name: create pull request
+        id: open-pr
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          destination_branch: staging
+          pr_title: '[Automated] Merge QA into Staging'
+          pr_body: 'Automated Pull Request'

@@ -1,0 +1,10 @@
+node_modules
+build
+
+.env
+.env.local
+
+# Ignore Mac DS_Store files
+.DS_Store
+
+.cache/*
